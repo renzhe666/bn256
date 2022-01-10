@@ -34,7 +34,7 @@ import (
 // G1 is an abstract cyclic group. The zero value is suitable for use as the
 // output of an operation, but cannot be used as an input.
 type G1 struct {
-	p *curvePoint
+	P *curvePoint
 }
 
 // RandomG1 returns x and g₁ˣ where x is a random, non-zero number read from r.
@@ -56,28 +56,28 @@ func RandomG1(r io.Reader) (*big.Int, *G1, error) {
 }
 
 func (e *G1) String() string {
-	if e.p == nil {
+	if e.P == nil {
 		return "bn256.G1" + newCurvePoint(nil).String()
 	}
-	return "bn256.G1" + e.p.String()
+	return "bn256.G1" + e.P.String()
 }
 
 // ScalarBaseMult sets e to g*k where g is the generator of the group and
 // then returns e.
 func (e *G1) ScalarBaseMult(k *big.Int) *G1 {
-	if e.p == nil {
-		e.p = newCurvePoint(nil)
+	if e.P == nil {
+		e.P = newCurvePoint(nil)
 	}
-	e.p.Mul(curveGen, k, new(bnPool))
+	e.P.Mul(curveGen, k, new(bnPool))
 	return e
 }
 
 // ScalarMult sets e to a*k and then returns e.
 func (e *G1) ScalarMult(a *G1, k *big.Int) *G1 {
-	if e.p == nil {
-		e.p = newCurvePoint(nil)
+	if e.P == nil {
+		e.P = newCurvePoint(nil)
 	}
-	e.p.Mul(a.p, k, new(bnPool))
+	e.P.Mul(a.P, k, new(bnPool))
 	return e
 }
 
@@ -85,19 +85,19 @@ func (e *G1) ScalarMult(a *G1, k *big.Int) *G1 {
 //
 // Warning: this function is not complete, it fails for a equal to b.
 func (e *G1) Add(a, b *G1) *G1 {
-	if e.p == nil {
-		e.p = newCurvePoint(nil)
+	if e.P == nil {
+		e.P = newCurvePoint(nil)
 	}
-	e.p.Add(a.p, b.p, new(bnPool))
+	e.P.Add(a.P, b.P, new(bnPool))
 	return e
 }
 
 // Neg sets e to -a and then returns e.
 func (e *G1) Neg(a *G1) *G1 {
-	if e.p == nil {
-		e.p = newCurvePoint(nil)
+	if e.P == nil {
+		e.P = newCurvePoint(nil)
 	}
-	e.p.Negative(a.p)
+	e.P.Negative(a.P)
 	return e
 }
 
@@ -106,14 +106,14 @@ func (e *G1) Marshal() []byte {
 	// Each value is a 256-bit number.
 	const numBytes = 256 / 8
 
-	if e.p.IsInfinity() {
+	if e.P.IsInfinity() {
 		return make([]byte, numBytes*2)
 	}
 
-	e.p.MakeAffine(nil)
+	e.P.MakeAffine(nil)
 
-	xBytes := new(big.Int).Mod(e.p.x, p).Bytes()
-	yBytes := new(big.Int).Mod(e.p.y, p).Bytes()
+	xBytes := new(big.Int).Mod(e.P.X, p).Bytes()
+	yBytes := new(big.Int).Mod(e.P.Y, p).Bytes()
 
 	ret := make([]byte, numBytes*2)
 	copy(ret[1*numBytes-len(xBytes):], xBytes)
@@ -132,23 +132,23 @@ func (e *G1) Unmarshal(m []byte) (*G1, bool) {
 		return nil, false
 	}
 
-	if e.p == nil {
-		e.p = newCurvePoint(nil)
+	if e.P == nil {
+		e.P = newCurvePoint(nil)
 	}
 
-	e.p.x.SetBytes(m[0*numBytes : 1*numBytes])
-	e.p.y.SetBytes(m[1*numBytes : 2*numBytes])
+	e.P.X.SetBytes(m[0*numBytes : 1*numBytes])
+	e.P.Y.SetBytes(m[1*numBytes : 2*numBytes])
 
-	if e.p.x.Sign() == 0 && e.p.y.Sign() == 0 {
+	if e.P.X.Sign() == 0 && e.P.Y.Sign() == 0 {
 		// This is the point at infinity.
-		e.p.y.SetInt64(1)
-		e.p.z.SetInt64(0)
-		e.p.t.SetInt64(0)
+		e.P.Y.SetInt64(1)
+		e.P.Z.SetInt64(0)
+		e.P.T.SetInt64(0)
 	} else {
-		e.p.z.SetInt64(1)
-		e.p.t.SetInt64(1)
+		e.P.Z.SetInt64(1)
+		e.P.T.SetInt64(1)
 
-		if !e.p.IsOnCurve() {
+		if !e.P.IsOnCurve() {
 			return nil, false
 		}
 	}
@@ -390,7 +390,7 @@ func (e *GT) Unmarshal(m []byte) (*GT, bool) {
 
 // Pair calculates an Optimal Ate pairing.
 func Pair(g1 *G1, g2 *G2) *GT {
-	return &GT{optimalAte(g2.p, g1.p, new(bnPool))}
+	return &GT{optimalAte(g2.p, g1.P, new(bnPool))}
 }
 
 // bnPool implements a tiny cache of *big.Int objects that's used to reduce the

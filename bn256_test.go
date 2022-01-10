@@ -140,9 +140,9 @@ func TestCurveImpl(t *testing.T) {
 	s1 := newCurvePoint(pool).Mul(X, y, pool).MakeAffine(pool)
 	s2 := newCurvePoint(pool).Mul(Y, x, pool).MakeAffine(pool)
 
-	if s1.x.Cmp(s2.x) != 0 ||
-		s2.x.Cmp(s1.x) != 0 {
-		t.Errorf("DH points don't match: (%s, %s) (%s, %s)", s1.x, s1.y, s2.x, s2.y)
+	if s1.X.Cmp(s2.X) != 0 ||
+		s2.X.Cmp(s1.X) != 0 {
+		t.Errorf("DH points don't match: (%s, %s) (%s, %s)", s1.X, s1.Y, s2.X, s2.Y)
 	}
 
 	pool.Put(x)
@@ -160,14 +160,14 @@ func TestCurveImpl(t *testing.T) {
 
 func TestOrderG1(t *testing.T) {
 	g := new(G1).ScalarBaseMult(Order)
-	if !g.p.IsInfinity() {
+	if !g.P.IsInfinity() {
 		t.Error("G1 has incorrect order")
 	}
 
 	one := new(G1).ScalarBaseMult(new(big.Int).SetInt64(1))
 	g.Add(g, one)
-	g.p.MakeAffine(nil)
-	if g.p.x.Cmp(one.p.x) != 0 || g.p.y.Cmp(one.p.y) != 0 {
+	g.P.MakeAffine(nil)
+	if g.P.X.Cmp(one.P.X) != 0 || g.P.Y.Cmp(one.P.Y) != 0 {
 		t.Errorf("1+0 != 1 in G1")
 	}
 }
@@ -230,7 +230,7 @@ func TestG1Marshal(t *testing.T) {
 	if !ok {
 		t.Fatalf("failed to unmarshal ∞")
 	}
-	if !g2.p.IsInfinity() {
+	if !g2.P.IsInfinity() {
 		t.Fatalf("∞ unmarshaled incorrectly")
 	}
 }
@@ -256,7 +256,7 @@ func TestG2Marshal(t *testing.T) {
 
 func TestG1Identity(t *testing.T) {
 	g := new(G1).ScalarBaseMult(new(big.Int).SetInt64(0))
-	if !g.p.IsInfinity() {
+	if !g.P.IsInfinity() {
 		t.Error("failure")
 	}
 }
